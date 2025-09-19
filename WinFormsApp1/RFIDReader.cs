@@ -212,9 +212,6 @@ namespace WinFormsApp1
                         byte[] blockData = new byte[16];
                         Array.Copy(response, 4, blockData, 0, 16);
                         string result = BitConverter.ToString(blockData).Replace("-", "");
-
-                        //return debugInfo + $"✅ 完整 MIFARE 區塊資料 (16字節): {result}\n" +
-                        //       $"這就是你要的格式！與 {result} 比較";
                         return result;
                     }
                     else
@@ -252,21 +249,6 @@ namespace WinFormsApp1
             return debugInfo + "❌ 回應格式不正確";
         }
 
-        // 嘗試多種方法讀取完整資料
-        public string ReadCardComplete()
-        {
-            string result = "";
-            int block = 0;
-            for (int sector = 0; sector < 16; sector++)
-            {
-                for (block = 0; block < 4; block++)
-                {
-                    result += "("+sector+"/"+ block+")"+ ReadMifareSpecificBlock(sector, block) + "\r\n";
-                }
-            }
-
-            return result;
-        }
         public unsafe string ReadMifareSpecificBlock(int sector, int block, string keyType, string loadKey)
         {
             UInt32 uiLength = 64, uiRead = 0, uiWritten = 0;
@@ -341,78 +323,5 @@ namespace WinFormsApp1
                 }
             }
         }
-
-        public unsafe string ReadMifareSpecificBlock(int sector, int block, string keyString = "FFFFFFFFFFFF")
-        {
-            UInt32 uiLength = 64, uiRead = 0, uiWritten = 0;
-            uint dwResult;
-
-            // 轉換金鑰字符串為字節陣列
-            byte[] keyBytes = HexStringToByteArray(keyString);
-            if (keyBytes == null || keyBytes.Length != 6)
-            {
-                return "金鑰格式錯誤";
-            }
-
-            byte[] WriteBuffer = new byte[12];
-            WriteBuffer[0] = 0x02;  // STX
-            WriteBuffer[1] = 0x0A;  // LEN
-            WriteBuffer[2] = 0x15;  // COMMAND
-            WriteBuffer[3] = 0x60;  // Key A
-                                    // 金鑰6字節
-            Array.Copy(keyBytes, 0, WriteBuffer, 4, 6);
-            WriteBuffer[10] = (byte)sector; // 扇區號碼
-            WriteBuffer[11] = (byte)block;  // 區塊號碼
-
-            easyPOD.VID = 0x0E6A;
-            easyPOD.PID = 0x0317;
-            uint Index = 1;
-
-            fixed (MW_EasyPOD* pPOD = &easyPOD)
-            {
-                dwResult = PODfuncs.ConnectPOD(pPOD, Index);
-
-                try
-                {
-                    easyPOD.ReadTimeOut = 2000;
-                    easyPOD.WriteTimeOut = 1000;
-
-                    dwResult = PODfuncs.WriteData(pPOD, WriteBuffer, (uint)WriteBuffer.Length, &uiWritten);
-
-                    byte[] ReadBuffer = new byte[64];
-                    uiRead = 0;
-                    uiLength = (uint)ReadBuffer.Length;
-                    dwResult = PODfuncs.ReadData(pPOD, ReadBuffer, uiLength, &uiRead);
-
-                    if (uiRead >= 4)
-                    {
-                        byte status = ReadBuffer[3];
-                        if (status == 0x00)
-                        {
-                            string rawHex = BitConverter.ToString(ReadBuffer, 0, (int)uiRead).Replace("-", " ");
-                            return ParseMifareBlockResponse(ReadBuffer, (int)uiRead);
-                        }
-                        else if (status == 0x01)
-                        {
-                            return $"❌ 扇區{sector}區塊{block} 無卡片或金鑰無效";
-                        }
-                        else
-                        {
-                            return $"❌ 扇區{sector}區塊{block} 錯誤狀態: 0x{status:X2}";
-                        }
-                    }
-                    else
-                    {
-                        return $"❌ 扇區{sector}區塊{block} 回應資料不足";
-                    }
-                }
-                finally
-                {
-                    PODfuncs.ClearPODBuffer(pPOD);
-                    PODfuncs.DisconnectPOD(pPOD);
-                }
-            }
-        }
-
     }
 }

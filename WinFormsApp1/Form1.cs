@@ -98,32 +98,32 @@ namespace WinFormsApp1
         }
 
 
-        private void btnReadCard_Click(object? sender, EventArgs e)
-        {
-            try
-            {
-                // 使用多種方法嘗試讀取完整的卡片資料
-                string result = rfidReader.ReadCardComplete();
-                txtResult.Text = result;
+        //private void btnReadCard_Click(object? sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        // 使用多種方法嘗試讀取完整的卡片資料
+        //        string result = rfidReader.ReadCardComplete();
+        //        txtResult.Text = result;
 
-                // 檢查是否有任何方法成功讀取到16字節資料
-                if (result.Contains("完整區塊資料 (16字節)") || result.Contains("✅"))
-                {
-                    MessageBox.Show("RD300 讀卡成功！", "成功",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else if (result.Contains("沒有偵測到卡片"))
-                {
-                    MessageBox.Show("請將卡片放在讀卡機上", "提示",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"RD300 讀卡時發生錯誤: {ex.Message}", "錯誤",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+        //        // 檢查是否有任何方法成功讀取到16字節資料
+        //        if (result.Contains("完整區塊資料 (16字節)") || result.Contains("✅"))
+        //        {
+        //            MessageBox.Show("RD300 讀卡成功！", "成功",
+        //                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //        }
+        //        else if (result.Contains("沒有偵測到卡片"))
+        //        {
+        //            MessageBox.Show("請將卡片放在讀卡機上", "提示",
+        //                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"RD300 讀卡時發生錯誤: {ex.Message}", "錯誤",
+        //            MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
 
         private void btnClose_Click(object? sender, EventArgs e)
         {
